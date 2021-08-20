@@ -1,10 +1,16 @@
 [@@@js.stop]
 
+val available : unit -> bool
+
 val connection_available : unit -> bool
 
 val share_available : unit -> bool
 
 [@@@js.start]
+
+[@@@js.implem
+let available () =
+  Js_of_ocaml.Js.Optdef.test Js_of_ocaml.Js.Unsafe.global##.navigator]
 
 [@@@js.implem
 let connection_available () =
@@ -44,10 +50,33 @@ module Share : sig
 
   type result
 
-  val then_ : promise -> (result -> unit) -> (string -> unit) -> unit
+  val then_ :
+    promise ->
+    ?onFulfilled:(result -> promise) ->
+    ?onRejected:(string -> promise) ->
+    unit ->
+    promise
     [@@js.call]
 
-  val catch : (result -> unit) -> result -> unit [@@js.call]
+  val then_unit :
+    promise ->
+    ?onFulfilled:(result -> unit) ->
+    ?onRejected:(string -> unit) ->
+    unit ->
+    unit
+    [@@js.call "then"]
+
+  val then_unit_to_catch :
+    promise ->
+    ?onFulfilled:(result -> unit) ->
+    ?onRejected:(string -> unit) ->
+    unit ->
+    promise
+    [@@js.call "then"]
+
+  val catch : promise -> (string -> promise) -> promise [@@js.call]
+
+  val catch_unit : promise -> (string -> unit) -> unit [@@js.call "catch"]
 end
 
 val share : Share.data -> Share.promise [@@js.global "navigator.share"]
